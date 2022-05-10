@@ -4,7 +4,7 @@ namespace Spotted_API.Services.Spotify
 {
     public class Client
     {
-        private string _apiKey;
+        private string accessToken, refreshToken;
         public DateTime _lastUpdate
         {
             get; private set;
@@ -30,15 +30,16 @@ namespace Spotted_API.Services.Spotify
             {
                 if (_spotifyClient == null)
                 {
-                    _spotifyClient = new SpotifyClient(_apiKey);
+                    _spotifyClient = new SpotifyClient(accessToken);
                 }
                 return _spotifyClient;
             }
         }
 
-        public Client(string key)
+        public Client(string accessToken, string refreshToken)
         {
-            _apiKey = key;
+            this.accessToken = accessToken;
+            this.refreshToken = refreshToken;
         }
 
         public async Task<PlayBackState> CheckPlayState()

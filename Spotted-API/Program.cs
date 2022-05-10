@@ -1,47 +1,40 @@
-using SpotifyAPI.Web;
+var builder = WebApplication.CreateBuilder(args);
 
-var client = new Spotted_API.Services.Spotify.Client(Spotted_API.Auth.eg_key);
+// Add services to the container.
 
-while (true)
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddSingleton<Spotted_API.Services.Spotify.ClientManager>();
+
+builder.Services.AddCors(options =>
 {
-    var state = client.CheckPlayState();
-    state.Wait();
+    options.AddPolicy(name: "_myAllowSpecificOrigins",
+        builder =>
+        {
+            builder.SetIsOriginAllowed(origin => true);
+            builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().AllowCredentials();
+            builder.WithOrigins("https://localhost:7142");
+        });
+});
 
-    if (state.Result.isDifferentToPreviousState)
-    {
-        Console.Write($"\r\n{state.Result.playingState.ToString()} - {state.Result.songChange.ToString()} - {client.currentTrack?.Name}");
-    }
-    else
-    {
-        Console.Write(".");
-    }
-    Thread.Sleep(5000);
+var app = builder.Build();
+
+app.UseCors("_myAllowSpecificOrigins");
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-Console.ReadLine();
+app.UseHttpsRedirection();
 
-//var builder = WebApplication.CreateBuilder(args);
+app.UseAuthorization();
 
-//// Add services to the container.
+app.MapControllers();
 
-//builder.Services.AddControllers();
-//// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-//builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
-
-//var app = builder.Build();
-
-//// Configure the HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseSwagger();
-//    app.UseSwaggerUI();
-//}
-
-//app.UseHttpsRedirection();
-
-//app.UseAuthorization();
-
-//app.MapControllers();
-
-//app.Run();
+app.Run();
