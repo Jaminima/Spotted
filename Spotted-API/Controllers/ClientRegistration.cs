@@ -36,9 +36,9 @@ namespace Spotted_API.Controllers
 
                         if (json.TryGetProperty("access_token", out JsonElement access) && json.TryGetProperty("refresh_token", out JsonElement refresh))
                         {
-                            var userName = await _clientManager.RegisterClient(access.GetString(), refresh.GetString());
+                            var cli = await _clientManager.RegisterClient(access.GetString(), refresh.GetString());
 
-                            if (userName?.Length > 0) return Redirect("/success");
+                            if (cli!=null) return Redirect("/success");
                         }
                         return Redirect("/fail");
                     }

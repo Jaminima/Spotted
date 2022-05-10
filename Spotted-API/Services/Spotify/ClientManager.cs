@@ -6,7 +6,7 @@ namespace Spotted_API.Services.Spotify
     {
         public ConcurrentDictionary<string,Client> clients = new ConcurrentDictionary<string, Client>();
 
-        public async Task<string?> RegisterClient(string accessToken, string refreshToken)
+        public async Task<Client> RegisterClient(string accessToken, string refreshToken)
         {
             var cli = new Client(accessToken, refreshToken);
             PrivateUser user;
@@ -20,7 +20,7 @@ namespace Spotted_API.Services.Spotify
             }
 
             if (clients.TryAdd(user.DisplayName, cli)) { 
-                return user.DisplayName;
+                return cli;
             }
             return null;
         }

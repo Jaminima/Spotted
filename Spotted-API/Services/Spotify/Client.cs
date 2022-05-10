@@ -48,9 +48,9 @@ namespace Spotted_API.Services.Spotify
             PlayBackState playBackState = new PlayBackState();
             var playback = await spotifyClient.Player.GetCurrentPlayback();
 
-            if (_currentlyPlayingContext!= null)
+            if (_currentlyPlayingContext!= null && playback.Item != null)
             {
-                if (((FullTrack)playback.Item).Id != ((FullTrack)_currentlyPlayingContext.Item).Id)
+                if (_currentlyPlayingContext.Item !=null && ((FullTrack)playback.Item).Id != ((FullTrack)_currentlyPlayingContext.Item).Id)
                 {
                     playBackState.songChange = SongChange.Skipped;
                 }

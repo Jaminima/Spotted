@@ -7,6 +7,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddHostedService<Spotted_API.Workers.StateCheck>();
+
 builder.Services.AddSingleton<Spotted_API.Services.Spotify.ClientManager>();
 
 builder.Services.AddCors(options =>
