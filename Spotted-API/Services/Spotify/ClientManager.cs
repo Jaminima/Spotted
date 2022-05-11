@@ -6,6 +6,11 @@ namespace Spotted_API.Services.Spotify
     {
         public ConcurrentDictionary<string,Client> clients = new ConcurrentDictionary<string, Client>();
 
+        public bool FindClient(string displayName, out Client cli)
+        {
+            cli = null;
+            return clients.TryGetValue(displayName, out cli);
+        }
         public async Task<Client> RegisterClient(string accessToken, string refreshToken)
         {
             var cli = new Client(accessToken, refreshToken);

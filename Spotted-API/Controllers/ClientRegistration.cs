@@ -49,6 +49,16 @@ namespace Spotted_API.Controllers
             return Problem("Token Grant From Code Failed", statusCode: 403);
         }
 
+        [HttpGet("check")]
+        public async Task<ActionResult> CheckAuth()
+        {
+            if (_sessionManager.FindRequestingClient(Request, _clientManager, out var cli))
+            {
+                return Ok(new { displayName = cli.currentUser.DisplayName });
+            }
+            return Problem("No Auth", statusCode: 401);
+        }
+
         [HttpGet("grant")]
         public ActionResult Grant()
         {

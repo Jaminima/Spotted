@@ -2,6 +2,7 @@
 using Scrypt;
 using System.Collections.Concurrent;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Spotted_API.Services
 {
@@ -47,6 +48,19 @@ namespace Spotted_API.Services
             if (_sessions.TryAdd(lastId, new Session() { key = scryptEncoder.Encode(key), displayName = cli.currentUser.DisplayName })){
                 sessionGrant = new SessionGrant() { id = lastId, key = key, displayName = cli.currentUser.DisplayName };
                 return true;
+            }
+            return false;
+        }
+
+        public bool FindRequestingClient(HttpRequest request, ClientManager clientManager, out Client cli)
+        {
+            cli = null;
+            if (request.Cookies.TryGetValue("id", out string str_id) && int.TryParse(str_id, out int id) && request.Cookies.TryGetValue("key", out string key))
+            {
+                if (FindSession(id, key, out string? displayName))
+                {
+                    return clientManager.FindClient(displayName, out cli);
+                }
             }
             return false;
         }
