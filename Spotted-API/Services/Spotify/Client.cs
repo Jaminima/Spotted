@@ -19,6 +19,11 @@ namespace Spotted_API.Services.Spotify
             get; private set;
         }
 
+        public PrivateUser currentUser
+        {
+            get; set;
+        }
+
         public FullTrack? currentTrack
         {
             get { return _currentlyPlayingContext != null ? (FullTrack)_currentlyPlayingContext.Item : null; }

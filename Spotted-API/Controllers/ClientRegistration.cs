@@ -10,50 +10,43 @@ namespace Spotted_API.Controllers
     public class ClientRegistration : Controller
     {
         private Services.Spotify.ClientManager _clientManager;
+        private Services.SessionManager _sessionManager;
 
-        public ClientRegistration(Services.Spotify.ClientManager clientManager)
+        public ClientRegistration(Services.Spotify.ClientManager clientManager, Services.SessionManager sessionManager)
         {
             _clientManager = clientManager;
+            _sessionManager = sessionManager;
         }
 
         // GET: ClientRegistration
         [HttpGet("callback")]
         public async Task<ActionResult> Callback([FromQuery] string code, [FromQuery] string state)
         {
-            using (var httpClient = new HttpClient())
+            var token = await Services.Spotify.TokenManager.TokenFromCodeGrant(code);
+            if (token != null)
             {
-                using (var request = new HttpRequestMessage(new HttpMethod("POST"), "https://accounts.spotify.com/api/token"))
+                var cli = await _clientManager.RegisterClient(token.accessToken, token.refreshToken);
+
+                if (cli!=null)
                 {
-                    request.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes($"{Configuration.client_id}:{Configuration.client_secret}")));
-                    request.Content = new FormUrlEncodedContent(new Dictionary<string, string>() { { "code", code }, { "redirect_uri", Configuration.callback_url }, { "grant_type", "authorization_code" } });
-                    var response = await httpClient.SendAsync(request);
-
-                    try
+                    if (_sessionManager.CreateSession(cli, out var grant))
                     {
-                        response.EnsureSuccessStatusCode();
-                        string content = await response.Content.ReadAsStringAsync();
-                        var json = JsonSerializer.Deserialize<JsonElement>(content);
-
-                        if (json.TryGetProperty("access_token", out JsonElement access) && json.TryGetProperty("refresh_token", out JsonElement refresh))
-                        {
-                            var cli = await _clientManager.RegisterClient(access.GetString(), refresh.GetString());
-
-                            if (cli!=null) return Redirect("/success");
-                        }
-                        return Redirect("/fail");
+                        Response.Cookies.Append("id", grant.id.ToString());
+                        Response.Cookies.Append("key", grant.key);
+                        Response.Cookies.Append("displayName", grant.displayName);
+                        return Ok(grant);
                     }
-                    catch (HttpRequestException e)
+                    else
                     {
-                        var error = await response.Content.ReadAsStringAsync();
-                        Console.WriteLine(error);
-                        return Redirect("error");
-                    }
-                    catch (JsonException e)
-                    {
-                        return Redirect("error");
+                        return Problem("Session Initialisation Failed", statusCode: 500);
                     }
                 }
+                else
+                {
+                    return Problem("Client Initialisation Failed", statusCode: 500);
+                }
             }
+            return Problem("Token Grant From Code Failed", statusCode: 403);
         }
 
         [HttpGet("grant")]

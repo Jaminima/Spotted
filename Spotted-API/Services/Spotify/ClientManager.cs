@@ -13,15 +13,18 @@ namespace Spotted_API.Services.Spotify
             try
             {
                 user = await cli.spotifyClient.UserProfile.Current();
+                cli.currentUser = user;
             }
             catch (APIUnauthorizedException e)
             {
                 return null;
             }
 
+            clients.Remove(user.DisplayName, out _);
             if (clients.TryAdd(user.DisplayName, cli)) { 
                 return cli;
             }
+
             return null;
         }
     }
